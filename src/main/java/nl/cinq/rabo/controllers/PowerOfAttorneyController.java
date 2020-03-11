@@ -1,0 +1,69 @@
+package nl.cinq.rabo.controllers;
+
+import lombok.extern.slf4j.Slf4j;
+import nl.cinq.rabo.entities.Cards;
+import nl.cinq.rabo.entities.PowerOfAttorneyAggregatedData;
+import nl.cinq.rabo.service.AggregateService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Mono;
+
+import java.net.ConnectException;
+import java.util.List;
+
+@Slf4j
+@RestController
+public class PowerOfAttorneyController {
+
+    public AggregateService aggregateService;
+
+    @Autowired
+    public PowerOfAttorneyController(AggregateService aggregateService) {
+        this.aggregateService = aggregateService;
+    }
+
+
+    @GetMapping(value = "/power_of_attorney")
+    public Mono<List<PowerOfAttorneyAggregatedData>> allPowerOfAttorneyAggregatedDetails() {
+        return aggregateService.getAllAggregatedDetails();
+    }
+
+    @GetMapping(value = "/power_of_attorney/{id}")
+    public Mono<PowerOfAttorneyAggregatedData> powerOfAttorneyAggregatedDetails(@PathVariable String id) {
+        return aggregateService.getPowerOfAttorneyAggregatedDetails(id);
+    }
+
+    @GetMapping(value = "/cards/{id}")
+    public Mono<Cards> cardsAggregatedDetails(@PathVariable String id) {
+        return aggregateService.getCardsAggregatedDetails(id);
+    }
+
+    @ExceptionHandler(WebClientResponseException.class)
+    public ResponseEntity handleWebClientResponseException(WebClientResponseException e) {
+        boolean xxClientError = e.getStatusCode().is4xxClientError();
+        String message;
+        if(xxClientError) {
+            message = "This id could not be found.";
+            log.info(e.getMessage());
+        }
+        else {
+            message = "Internal error, please contact us for assistance.";
+            log.error(e.getMessage(), e.getStackTrace());
+        }
+
+        return new ResponseEntity(message, e.getStatusCode());
+    }
+
+    @ExceptionHandler(ConnectException.class)
+    public ResponseEntity handleConnectionException(ConnectException e) {
+        String message = "Connection error, please contact us for assistance.";
+        log.error(e.getMessage(), e.getStackTrace());
+        return new ResponseEntity(message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
