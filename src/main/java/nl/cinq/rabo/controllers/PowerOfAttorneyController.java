@@ -1,5 +1,8 @@
 package nl.cinq.rabo.controllers;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import nl.cinq.rabo.entities.Cards;
 import nl.cinq.rabo.entities.PowerOfAttorneyAggregatedData;
@@ -10,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
@@ -19,6 +23,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
+@RequestMapping("/api/v1")
 public class PowerOfAttorneyController {
 
     public AggregateService aggregateService;
@@ -29,16 +34,31 @@ public class PowerOfAttorneyController {
     }
 
 
+    @ApiOperation(httpMethod = "GET", value = "Get all power of attorney aggregated details",
+            response = PowerOfAttorneyAggregatedData.class, responseContainer = "List")
+    @ApiResponses(value = {
+            @ApiResponse(code = 404, message = "Power of attorney aggregated details not found"),
+            @ApiResponse(code = 500, message = "Power of attorney aggregated details could not be fetched")})
     @GetMapping(value = "/power_of_attorney")
     public Mono<List<PowerOfAttorneyAggregatedData>> allPowerOfAttorneyAggregatedDetails() {
         return aggregateService.getAllAggregatedDetails();
     }
 
+    @ApiOperation(httpMethod = "GET", value = "Get power of attorney aggregated details for id",
+            response = PowerOfAttorneyAggregatedData.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 404, message = "Power of attorney aggregated details not found"),
+            @ApiResponse(code = 500, message = "Power of attorney aggregated details could not be fetched")})
     @GetMapping(value = "/power_of_attorney/{id}")
     public Mono<PowerOfAttorneyAggregatedData> powerOfAttorneyAggregatedDetails(@PathVariable String id) {
         return aggregateService.getPowerOfAttorneyAggregatedDetails(id);
     }
 
+    @ApiOperation(httpMethod = "GET", value = "Get the aggregated details of cards of power of attorney for id",
+            response = PowerOfAttorneyAggregatedData.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 404, message = "Cards not found"),
+            @ApiResponse(code = 500, message = "Cards could not be fetched")})
     @GetMapping(value = "/cards/{id}")
     public Mono<Cards> cardsAggregatedDetails(@PathVariable String id) {
         return aggregateService.getCardsAggregatedDetails(id);
@@ -48,11 +68,10 @@ public class PowerOfAttorneyController {
     public ResponseEntity handleWebClientResponseException(WebClientResponseException e) {
         boolean xxClientError = e.getStatusCode().is4xxClientError();
         String message;
-        if(xxClientError) {
+        if (xxClientError) {
             message = "This id could not be found.";
             log.info(e.getMessage());
-        }
-        else {
+        } else {
             message = "Internal error, please contact us for assistance.";
             log.error(e.getMessage(), e.getStackTrace());
         }
