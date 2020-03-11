@@ -22,9 +22,6 @@ import static org.junit.Assert.assertEquals;
 class RaboPowerOfAttorneyApplicationTests {
 
     private PowerOfAttorneyService powerOfAttorneyService;
-    private CreditCardsService creditCardsService;
-    private DebitCardsService debitCardsService;
-
     private ObjectMapper mapper = new ObjectMapper();
 
     public static MockWebServer mockBackEnd;
