@@ -8,6 +8,7 @@ import nl.cinq.rabo.entities.DebitCardsDetails;
 import nl.cinq.rabo.entities.PowerOfAttorneyAggregatedData;
 import nl.cinq.rabo.entities.PowerOfAttorneyDetails;
 import nl.cinq.rabo.entities.enums.Authorization;
+import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -66,26 +67,29 @@ public class AggregateService {
 
     private Mono<Cards> getCards(Mono<PowerOfAttorneyDetails> powerOfAttorneyDetailsMono) {
         return powerOfAttorneyDetailsMono.flatMapMany(
-                powerOfAttorneyDetails -> {
-                    boolean isDebitAuthorized = powerOfAttorneyDetails
-                            .getAuthorizations()
-                            .contains(Authorization.DEBIT_CARD);
-                    return isDebitAuthorized
-                            ? getDebitCardsDetails(powerOfAttorneyDetails.getCards())
-                            : Flux.empty();
-                }
-        )
+                powerOfAttorneyDetails -> getDebitCardsPublisher(powerOfAttorneyDetails))
                 .collectList()
                 .zipWith(powerOfAttorneyDetailsMono.flatMapMany(
-                        powerOfAttorneyDetails -> {
-                            boolean isCreditAuthorized = powerOfAttorneyDetails
-                                    .getAuthorizations()
-                                    .contains(Authorization.CREDIT_CARD);
-                            return isCreditAuthorized
-                                    ? getCreditCardsDetails(powerOfAttorneyDetails.getCards())
-                                    : Flux.empty();
-                        }
-                        ).collectList(),
-                        Cards::new);
+                        powerOfAttorneyDetails -> getCreditCardsPublisher(powerOfAttorneyDetails)
+                )
+                        .collectList(), Cards::new);
+    }
+
+    private Publisher<DebitCardsDetails> getDebitCardsPublisher(PowerOfAttorneyDetails powerOfAttorneyDetails) {
+        boolean isDebitAuthorized = powerOfAttorneyDetails
+                .getAuthorizations()
+                .contains(Authorization.DEBIT_CARD);
+        return isDebitAuthorized
+                ? getDebitCardsDetails(powerOfAttorneyDetails.getCards())
+                : Flux.empty();
+    }
+
+    private Publisher<CreditCardsDetails> getCreditCardsPublisher(PowerOfAttorneyDetails powerOfAttorneyDetails) {
+        boolean isCreditAuthorized = powerOfAttorneyDetails
+                .getAuthorizations()
+                .contains(Authorization.CREDIT_CARD);
+        return isCreditAuthorized
+                ? getCreditCardsDetails(powerOfAttorneyDetails.getCards())
+                : Flux.empty();
     }
 }

@@ -61,9 +61,9 @@ public class PowerOfAttorneyController {
 
     @ExceptionHandler(WebClientResponseException.class)
     public ResponseEntity handleWebClientResponseException(WebClientResponseException e) {
-        boolean xxClientError = e.getStatusCode().is4xxClientError();
+        boolean is4xxClientError = e.getStatusCode().is4xxClientError();
         String message;
-        if (xxClientError) {
+        if (is4xxClientError) {
             message = "This id could not be found.";
             log.info(e.getMessage());
         } else {
