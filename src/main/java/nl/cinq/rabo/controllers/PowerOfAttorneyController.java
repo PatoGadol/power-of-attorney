@@ -24,6 +24,10 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1")
+@ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Successfully processed the request"),
+        @ApiResponse(code = 404, message = "The resource you were trying to reach is not found."),
+        @ApiResponse(code = 500, message = "Internal error has occurred.")})
 public class PowerOfAttorneyController {
 
     public AggregateService aggregateService;
@@ -36,9 +40,6 @@ public class PowerOfAttorneyController {
 
     @ApiOperation(httpMethod = "GET", value = "Get all power of attorney aggregated details",
             response = PowerOfAttorneyAggregatedData.class, responseContainer = "List")
-    @ApiResponses(value = {
-            @ApiResponse(code = 404, message = "Power of attorney aggregated details not found"),
-            @ApiResponse(code = 500, message = "Power of attorney aggregated details could not be fetched")})
     @GetMapping(value = "/power_of_attorney")
     public Mono<List<PowerOfAttorneyAggregatedData>> allPowerOfAttorneyAggregatedDetails() {
         return aggregateService.getAllAggregatedDetails();
@@ -46,9 +47,6 @@ public class PowerOfAttorneyController {
 
     @ApiOperation(httpMethod = "GET", value = "Get power of attorney aggregated details for id",
             response = PowerOfAttorneyAggregatedData.class)
-    @ApiResponses(value = {
-            @ApiResponse(code = 404, message = "Power of attorney aggregated details not found"),
-            @ApiResponse(code = 500, message = "Power of attorney aggregated details could not be fetched")})
     @GetMapping(value = "/power_of_attorney/{id}")
     public Mono<PowerOfAttorneyAggregatedData> powerOfAttorneyAggregatedDetails(@PathVariable String id) {
         return aggregateService.getPowerOfAttorneyAggregatedDetails(id);
@@ -56,9 +54,6 @@ public class PowerOfAttorneyController {
 
     @ApiOperation(httpMethod = "GET", value = "Get the aggregated details of cards of power of attorney for id",
             response = PowerOfAttorneyAggregatedData.class)
-    @ApiResponses(value = {
-            @ApiResponse(code = 404, message = "Cards not found"),
-            @ApiResponse(code = 500, message = "Cards could not be fetched")})
     @GetMapping(value = "/cards/{id}")
     public Mono<Cards> cardsAggregatedDetails(@PathVariable String id) {
         return aggregateService.getCardsAggregatedDetails(id);
